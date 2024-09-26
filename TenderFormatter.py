@@ -1,28 +1,16 @@
-import datetime
-import io
-import json
-import os
-import re
-import time
-import copy
-import pandas as pd
-import warnings
-
-warnings.filterwarnings("ignore", category=FutureWarning, module="pandas")
-
-
 def ProcessItemRecord(item_record):
     """
     創建代碼企業名稱表
     """
     df_ids = pd.DataFrame(item_record["brief"]["companies"]["ids"])
-
     if df_ids.shape[0] == 0:
         return  # 跳过空缺标案
 
     df_names = pd.DataFrame(item_record["brief"]["companies"]["names"])
+    if df_names.shape[0] == 0:
+        return  # 跳过空缺标案
     df_names.columns = ["names"]
-
+    
     if df_ids.shape[0] != df_names.shape[0]:
         return  # 跳过错误记录
 
@@ -231,13 +219,11 @@ def ProcessItemRecord(item_record):
             df_merge[str_var] = json.dumps(dict_detail[str_var],
                                            ensure_ascii=False)  # 以字符串存储
 
-    df_merge["標案中縂決標品項數量"] = max(
-        [
-            int(re.search(r"第(\d+)品項:", key).group(1))
-            for key in dict_detail if re.search(r"第(\d+)品項:", key)
-        ],
-        default=None,
-    )
+    df_merge["標案中縂決標品項數量"] = max([
+        int(re.search(r"第(\d+)品項:", key).group(1))
+        for key in dict_detail if re.search(r"第(\d+)品項:", key)
+    ],
+                                 default=None)
 
     # 结果
     return df_merge
