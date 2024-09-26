@@ -1,3 +1,8 @@
+import json
+import re
+import numpy as np
+import pandas as pd
+
 def ProcessItemRecord(item_record):
     """
     創建代碼企業名稱表
@@ -10,7 +15,7 @@ def ProcessItemRecord(item_record):
     if df_names.shape[0] == 0:
         return  # 跳过空缺标案
     df_names.columns = ["names"]
-    
+
     if df_ids.shape[0] != df_names.shape[0]:
         return  # 跳过错误记录
 
@@ -85,9 +90,7 @@ def ProcessItemRecord(item_record):
             & (company_data["item_content"] == "決標金額")]
 
         # 提取并清洗金额数据
-        amounts = winning_amounts["item_value"].str.replace(r"\D",
-                                                            "",
-                                                            regex=True)
+        amounts = winning_amounts["item_value"].str.replace(r"[^\d.]", "", regex=True) # 不要填补缺漏值
         amounts = pd.to_numeric(amounts, errors="coerce")
         total_winning_amount = amounts.sum()
 
@@ -108,9 +111,7 @@ def ProcessItemRecord(item_record):
         # 清洗金额数据，仅保留数字字符
         for col in ["決標金額", "底價金額"]:
             if col in awarded_pivot.columns:
-                awarded_pivot[col] = awarded_pivot[col].str.replace(r"\D",
-                                                                    "",
-                                                                    regex=True)
+                awarded_pivot[col] = awarded_pivot[col].str.replace(r"[^\d.]", "", regex=True) # 不要填补缺漏值
                 awarded_pivot[col] = pd.to_numeric(awarded_pivot[col],
                                                    errors="coerce")
 
